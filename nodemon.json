@@ -1,0 +1,12 @@
+{
+    "watch": [
+        "server"
+    ],
+    "ext": "ts,js",
+    "exec": "tsx server/index.ts",
+    "ignore": [
+        "node_modules",
+        ".next",
+        "prisma"
+    ]
+}

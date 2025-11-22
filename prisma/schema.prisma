@@ -1,0 +1,68 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  password  String
+  name      String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  sessions  Session[]
+}
+
+model Session {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String?
+  duration    Int       @default(0) // in seconds
+  status      SessionStatus @default(IDLE)
+  audioSource String?   // "microphone" or "tab"
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  transcript  Transcript?
+  summary     Summary?
+
+  @@index([userId])
+}
+
+model Transcript {
+  id         String   @id @default(cuid())
+  sessionId  String   @unique
+  session    Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  content    String   @db.Text
+  chunks     Json?    // Array of transcript chunks with timestamps
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Summary {
+  id          String   @id @default(cuid())
+  sessionId   String   @unique
+  session     Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  content     String   @db.Text
+  keyPoints   Json?    // Array of key points
+  actionItems Json?    // Array of action items
+  decisions   Json?    // Array of decisions
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum SessionStatus {
+  IDLE
+  RECORDING
+  PAUSED
+  PROCESSING
+  COMPLETED
+  ERROR
+}
